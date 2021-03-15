@@ -17,6 +17,9 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
   return {
     recordKey: '__jupiter-password-manager',
 
+    // export all options data provided in object returned
+    ...opts,
+
     config: CONF,
 
     client: axios.create({
