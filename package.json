@@ -1,6 +1,6 @@
 {
   "name": "jupiter-node-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A thin wrapper around the Jupiter blockchain APIs.",
   "main": "./dist/index.js",
   "repository": {
