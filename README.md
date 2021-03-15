@@ -18,9 +18,9 @@ const client = JupiterClient({
   encryptSecret: `optional alphanumeric password to encrypt data going to blockchain`, // DEFAULT: passphrase
 })
 
-client.nqtToJup(stringOfNqtAmount)
+const jupAmount = client.nqtToJup(stringOfNqtAmount)
 
-client.jupToNqt(stringOfJupAmount)
+const nqtAmount = client.jupToNqt(stringOfJupAmount)
 
 const cipherText = await client.encrypt(
   `plain text to encrypt with AES-256 bit encryption`
@@ -47,7 +47,7 @@ const txns = await client.getAllTransactions()
 
 // to make any generic Jupiter/NXT API request you can use #request as shown below
 // which uses axios under the hood
-await this.request('get', '/nxt', {
+await client.request('get', '/nxt', {
   params: {
     requestType: 'getBlockchainTransactions',
     account: `JUP-XXX-XXX`,
