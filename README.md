@@ -38,7 +38,7 @@ const {
 const balanceJup = await client.getBalance(`JUP-XXX-XXX`)
 
 // sender is address in constructor above
-await client.sendMoney(recipientJupAddress)
+await client.sendMoney(recipientJupAddress, amountJupToSend)
 
 // store any data you want (object should be a Javascript object) on the blockchain
 await client.storeRecord(object)

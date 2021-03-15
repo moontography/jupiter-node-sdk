@@ -56,6 +56,10 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
     },
 
     async createNewAddress(passphrase: string) {
+      return await this.getAddressFromPassphrase(passphrase)
+    },
+
+    async getAddressFromPassphrase(passphrase: string) {
       const {
         data: { accountRS: address, publicKey, requestProcessingTime, account },
       } = await this.request('post', '/nxt', {
@@ -67,13 +71,15 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       return { address, publicKey, requestProcessingTime, account }
     },
 
-    async sendMoney(recipientAddr: string) {
+    async sendMoney(recipientAddr: string, amountJup?: string) {
       const { data } = await this.request('post', '/nxt', {
         params: {
           requestType: 'sendMoney',
           secretPhrase: opts.passphrase,
           recipient: recipientAddr,
-          amountNQT: CONF.minimumFndrAccountBalance,
+          amountNQT: amountJup
+            ? this.jupToNqt(amountJup)
+            : CONF.minimumFndrAccountBalance,
           feeNQT: CONF.feeNQT,
           deadline: CONF.deadline,
         },
