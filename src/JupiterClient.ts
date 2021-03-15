@@ -137,6 +137,17 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       withMessage: boolean = true,
       type: number = 1
     ): Promise<ITransaction[]> {
+      const [confirmed, unconfirmed] = await Promise.all([
+        await this.getAllConfirmedTransactions(withMessage, type),
+        await this.getAllUnconfirmedTransactions(withMessage, type),
+      ])
+      return unconfirmed.concat(confirmed)
+    },
+
+    async getAllConfirmedTransactions(
+      withMessage: boolean = true,
+      type: number = 1
+    ): Promise<ITransaction[]> {
       const {
         data: {
           /* requestProcessingTime, */
@@ -150,7 +161,30 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
           type,
         },
       })
-      return transactions
+      return transactions == null ? [] : transactions
+    },
+
+    async getAllUnconfirmedTransactions(
+      withMessage: boolean = true,
+      type: number = 1
+    ): Promise<ITransaction[]> {
+      const {
+        data: {
+          /* requestProcessingTime, */
+          unconfirmedTransactions,
+        },
+      } = await this.request('post', '/nxt', {
+        params: {
+          requestType: 'getUnconfirmedTransactions',
+          account: opts.address,
+          withMessage,
+          type,
+        },
+      })
+
+      return unconfirmedTransactions == null
+        ? []
+        : unconfirmedTransactions.reverse()
     },
 
     async request(

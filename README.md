@@ -43,6 +43,7 @@ await client.sendMoney(recipientJupAddress)
 // store any data you want (object should be a Javascript object) on the blockchain
 await client.storeRecord(object)
 
+// gets all confirmed AND unconfirmed transactions
 const txns = await client.getAllTransactions()
 
 // to make any generic Jupiter/NXT API request you can use #request as shown below
