@@ -15,7 +15,7 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
   }
 
   return {
-    recordKey: '__jupiter-password-manager',
+    recordKey: opts.recordKey,
 
     // export all options data provided in object returned
     ...opts,
@@ -25,7 +25,7 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
     client: axios.create({
       baseURL: opts.server,
       headers: {
-        'User-Agent': 'jupiter-password-manager',
+        'User-Agent': 'jupiter-node-sdk',
       },
     }),
 
@@ -103,6 +103,12 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
 
     // async storeRecord(record: IStringMap) {
     async storeRecord(record: any) {
+      const finalRecordToStore = this.recordKey
+        ? {
+            ...record,
+            [this.recordKey]: true,
+          }
+        : record
       const { data } = await this.request('post', '/nxt', {
         params: {
           requestType: 'sendMessage',
@@ -110,10 +116,7 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
           recipient: opts.address,
           recipientPublicKey: opts.publicKey,
           messageToEncrypt: await this.encrypt(
-            JSON.stringify({
-              ...record,
-              [this.recordKey]: true,
-            })
+            JSON.stringify(finalRecordToStore)
           ),
           feeNQT: CONF.feeNQT,
           deadline: CONF.deadline,
@@ -224,6 +227,7 @@ interface IJupiterClientOpts {
   address: string
   passphrase: string
   encryptSecret?: string
+  recordKey?: string
   publicKey?: string
   feeNQT?: number
   deadline?: number
