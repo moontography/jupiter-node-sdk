@@ -1,5 +1,9 @@
 import WordList from './WordList'
 
+export async function sleep(milliseconds = 1000) {
+  return await new Promise((resolve) => setTimeout(resolve, milliseconds))
+}
+
 // The following is the code which will generate a list of 12
 // random words that will be used to generate an nxt account
 export function generatePassphrase(): string {

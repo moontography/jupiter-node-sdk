@@ -6,7 +6,7 @@ describe('JupiterClient', function() {
 
   const myAddy = 'JUP-TUWZ-4B8Z-9REP-2YVH5'
   const client = JupiterClient({
-    server: 'https://jpr.gojupiter.tech',
+    server: 'https://jpr2.gojupiter.tech',
     address: myAddy,
     passphrase: '',
     encryptSecret: '',

@@ -1,6 +1,8 @@
+import assert from 'assert'
 import axios, { AxiosResponse } from 'axios'
 import BigNumber from 'bignumber.js'
 import Encryption from './Encryption'
+import { sleep } from './utils'
 
 export default function JupiterClient(opts: IJupiterClientOpts) {
   const encryption = Encryption({
@@ -14,6 +16,15 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
     jupNqtDecimals: opts.jupNqtDecimals || 8,
   }
 
+  function setClient(serverUrl: string = opts.server) {
+    return axios.create({
+      baseURL: serverUrl,
+      headers: {
+        'User-Agent': 'jupiter-node-sdk',
+      },
+    })
+  }
+
   return {
     recordKey: opts.recordKey,
 
@@ -22,12 +33,9 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
 
     config: CONF,
 
-    client: axios.create({
-      baseURL: opts.server,
-      headers: {
-        'User-Agent': 'jupiter-node-sdk',
-      },
-    }),
+    client: setClient(opts.server),
+    lastClientTest: 0,
+    peerList: [{ announcedAddress: opts.server }],
 
     // balances from the API come back as NQT, which is 1e-8 JUP
     nqtToJup(nqt: string): string {
@@ -40,6 +48,66 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
 
     decrypt: encryption.decrypt.bind(encryption),
     encrypt: encryption.encrypt.bind(encryption),
+
+    setClient(...args: any[]) {
+      return (this.client = setClient(...args))
+    },
+
+    async setClientRoundRobin() {
+      let peerListCopy = this.peerList.slice()
+      while (peerListCopy.length > 0) {
+        const [peer] = peerListCopy.splice(
+          Math.random() * peerListCopy.length,
+          1
+        )
+        assert(peer, 'peer does not exist')
+        const { announcedAddress } = peer
+        const isConnected = await this.testConnection(announcedAddress)
+        if (isConnected) {
+          this.setClient(announcedAddress)
+          this.peerList = await this.getPeers()
+          this.lastClientTest = Date.now()
+          return
+        }
+      }
+
+      throw new Error(`No more peers to try and connect to`)
+    },
+
+    async testConnection(
+      singleServerUrl: string,
+      reasonableTimeToWaitMs: number = 5e3 // 5 second default
+    ): Promise<boolean> {
+      return await Promise.race([
+        (async () => {
+          await sleep(reasonableTimeToWaitMs)
+          return false
+        })(),
+        (async () => {
+          try {
+            await this.getPeers(`${singleServerUrl}/nxt`)
+            return true
+          } catch (err) {
+            return false
+          }
+        })(),
+      ])
+    },
+
+    // we use this for testConnection, so allow passing in other
+    // URLs for testing connections
+    async getPeers(serverUrl?: string) {
+      const {
+        data: { peers },
+      } = await this.request('get', serverUrl ? serverUrl : '/nxt', {
+        params: {
+          requestType: 'getPeers',
+          includePeerInfo: true,
+        },
+        dontTest: true,
+      })
+      return peers
+    },
 
     async getBalance(address: string = opts.address): Promise<string> {
       const {
@@ -204,6 +272,23 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       path: string,
       opts?: IRequestOpts
     ): Promise<AxiosResponse> {
+      // test connection every 5 minutes in case the current node dies
+      if (
+        (!opts || !opts.dontTest) &&
+        Date.now() - this.lastClientTest >= 1000 * 60 * 5
+      ) {
+        assert(
+          this.client.defaults.baseURL,
+          `current client baseURL is not set for some reason`
+        )
+        const isConnected = await this.testConnection(
+          this.client.defaults.baseURL
+        )
+        if (!isConnected) {
+          await this.setClientRoundRobin()
+        }
+      }
+
       switch (verb) {
         case 'post':
           return await this.client.post(
@@ -242,6 +327,7 @@ interface IRequestOpts {
   // now since POST body isn't support don't allow it in a request.
   params?: any
   // body?: any
+  dontTest?: boolean
 }
 
 interface ITransactionAttachment {
