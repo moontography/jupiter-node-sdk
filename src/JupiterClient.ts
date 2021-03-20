@@ -20,6 +20,7 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
     return axios.create({
       baseURL: serverUrl,
       headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
         'User-Agent': 'jupiter-node-sdk',
       },
     })
@@ -290,14 +291,18 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       }
 
       switch (verb) {
-        case 'post':
-          return await this.client.post(
-            path,
-            undefined, // opts && opts.body
-            {
-              params: opts && opts.params,
-            }
-          )
+        case 'post': {
+          const requestType =
+            (opts && opts.params && opts.params.requestType) ||
+            (opts && opts.body && opts.body.requestType)
+          let body = opts && { ...opts.body, ...opts.params }
+          delete body.requestType
+          return await this.client.post(path, body, {
+            params: {
+              requestType,
+            },
+          })
+        }
 
         default:
           // get
@@ -326,7 +331,7 @@ interface IRequestOpts {
   // via query string params, even if it's a POST. This seems bad, but for
   // now since POST body isn't support don't allow it in a request.
   params?: any
-  // body?: any
+  body?: any
   dontTest?: boolean
 }
 
