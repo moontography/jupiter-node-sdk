@@ -1,5 +1,6 @@
 import assert from 'assert'
 import axios, { AxiosResponse } from 'axios'
+import qs from 'querystring'
 import BigNumber from 'bignumber.js'
 import Encryption from './Encryption'
 import { sleep } from './utils'
@@ -297,7 +298,7 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
             (opts && opts.body && opts.body.requestType)
           let body = opts && { ...opts.body, ...opts.params }
           delete body.requestType
-          return await this.client.post(path, body, {
+          return await this.client.post(path, qs.stringify(body), {
             params: {
               requestType,
             },
