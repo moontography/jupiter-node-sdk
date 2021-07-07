@@ -48,6 +48,24 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       return new BigNumber(jup).times(CONF.jupNqtDecimals).toString()
     },
 
+    calculateMessageFee(encryptedMessageLength: number): number {
+      let fee = CONF.feeNQT
+      if (!encryptedMessageLength)
+          return fee
+      if (encryptedMessageLength <= 10000) {
+          fee = 4000
+      } else if (encryptedMessageLength <= 20000) {
+          fee = 7000
+      } else if (encryptedMessageLength <= 30000) {
+          fee = 10000
+      } else if (encryptedMessageLength <= 40000) {
+          fee = 13000
+      } else {
+          fee = 16000
+      }
+      return fee
+    },
+
     decrypt: encryption.decrypt.bind(encryption),
     encrypt: encryption.encrypt.bind(encryption),
 
@@ -179,16 +197,19 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
             [this.recordKey]: true,
           }
         : record
+
+      const encryptedMessage = await this.encrypt(
+        JSON.stringify(finalRecordToStore)
+      )
+
       const { data } = await this.request('post', '/nxt', {
         params: {
           requestType: 'sendMessage',
           secretPhrase: opts.passphrase,
           recipient: opts.address,
           recipientPublicKey: opts.publicKey,
-          messageToEncrypt: await this.encrypt(
-            JSON.stringify(finalRecordToStore)
-          ),
-          feeNQT: CONF.feeNQT,
+          messageToEncrypt: encryptedMessage,
+          feeNQT: this.calculateMessageFee(encryptedMessage.length),
           deadline: CONF.deadline,
           compressMessageToEncrypt: true,
         },
@@ -215,6 +236,8 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       return decryptedMessage
     },
 
+
+
     async getAllTransactions(
       withMessage: boolean = true,
       type: number = 1
@@ -226,13 +249,28 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       return unconfirmed.concat(confirmed)
     },
 
+    async getTransaction(
+      txId: string
+    ): Promise<ITransaction> {
+      const {
+        data: {
+          transaction,
+        },
+      } = await this.request('post', '/nxt', {
+        params: {
+          requestType: 'getTransaction',
+          transaction: txId
+        },
+      })
+      return transaction
+    },
+
     async getAllConfirmedTransactions(
       withMessage: boolean = true,
       type: number = 1
     ): Promise<ITransaction[]> {
       const {
         data: {
-          /* requestProcessingTime, */
           transactions,
         },
       } = await this.request('get', '/nxt', {
@@ -252,7 +290,6 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
     ): Promise<ITransaction[]> {
       const {
         data: {
-          /* requestProcessingTime, */
           unconfirmedTransactions,
         },
       } = await this.request('post', '/nxt', {
