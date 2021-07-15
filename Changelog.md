@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.3.0]
+### Changed
+- Update storeRecord function to support jupiter metis subtypes
+
 ## [0.2.1] - 2020-07-07
 ### Added
 - Added Changelog file

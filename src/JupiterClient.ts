@@ -190,7 +190,7 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
     },
 
     // async storeRecord(record: IStringMap) {
-    async storeRecord(record: any) {
+    async storeRecord(record: any, subtype: string) {
       const finalRecordToStore = this.recordKey
         ? {
             ...record,
@@ -202,9 +202,12 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
         JSON.stringify(finalRecordToStore)
       )
 
+      const requestType = subtype ? 'sendMetisMessage' : 'sendMessage'
+
       const { data } = await this.request('post', '/nxt', {
         params: {
-          requestType: 'sendMessage',
+          requestType: requestType,
+          subtype: subtype,
           secretPhrase: opts.passphrase,
           recipient: opts.address,
           recipientPublicKey: opts.publicKey,
