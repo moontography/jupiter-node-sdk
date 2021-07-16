@@ -239,14 +239,13 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       return decryptedMessage
     },
 
-
-
     async getAllTransactions(
       withMessage: boolean = true,
-      type: number = 1
+      type: number = 1, 
+      subtype?: number
     ): Promise<ITransaction[]> {
       const [confirmed, unconfirmed] = await Promise.all([
-        await this.getAllConfirmedTransactions(withMessage, type),
+        await this.getAllConfirmedTransactions(withMessage, type, subtype),
         await this.getAllUnconfirmedTransactions(withMessage, type),
       ])
       return unconfirmed.concat(confirmed)
@@ -270,7 +269,8 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
 
     async getAllConfirmedTransactions(
       withMessage: boolean = true,
-      type: number = 1
+      type: number = 1,
+      subtype?: number
     ): Promise<ITransaction[]> {
       const {
         data: {
@@ -282,6 +282,7 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
           account: opts.address,
           withMessage,
           type,
+          subtype
         },
       })
       return transactions == null ? [] : transactions
