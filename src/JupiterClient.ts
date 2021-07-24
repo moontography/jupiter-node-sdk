@@ -17,6 +17,9 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
     jupNqtDecimals: opts.jupNqtDecimals || 8,
   }
 
+  const TYPE_DATA_FS = 8;
+  const SUBTYPE_MESSAGING_METIS_METADATA_TYPE = 0;
+
   function setClient(serverUrl: string = opts.server) {
     return axios.create({
       baseURL: serverUrl,
@@ -52,16 +55,18 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       let fee = CONF.feeNQT
       if (!encryptedMessageLength)
           return fee
-      if (encryptedMessageLength <= 10000) {
-          fee = 4000
+      if (encryptedMessageLength <= 5000) {
+        fee = 16500
+      } else if (encryptedMessageLength <= 10000) {
+        fee = 32000
       } else if (encryptedMessageLength <= 20000) {
-          fee = 7000
+        fee = 63000
       } else if (encryptedMessageLength <= 30000) {
-          fee = 10000
+        fee = 94500
       } else if (encryptedMessageLength <= 40000) {
-          fee = 13000
+        fee = 126000
       } else {
-          fee = 16000
+        fee = 135000
       }
       return fee
     },
@@ -238,6 +243,11 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       })
       return decryptedMessage
     },
+
+    async getAllMatadataTransactions(): Promise<ITransaction[]> {
+      return this.getAllTransactions(true, TYPE_DATA_FS, SUBTYPE_MESSAGING_METIS_METADATA_TYPE)
+    },
+
 
     async getAllTransactions(
       withMessage: boolean = true,
