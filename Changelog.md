@@ -3,6 +3,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - 2020-07-25
+### Changed
+- Increased fee for jupiter-fs binary transactions
+
+### Added
+- Added function to get all the transactions with jupiter-fs metadata
+
 ## [0.3.1] - 2020-07-15
 ### Changed
 - Update getAllTransactions function to support jupiter metis subtypes
