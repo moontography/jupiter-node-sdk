@@ -35,7 +35,7 @@ const {
   account,
 } = await client.createNewAddress(secretPhrase)
 
-const balanceJup = await client.getBalance(`JUP-XXX-XXX`)
+const balanceJup = await client.getBalance(`JUP-XXX-XXX`).balanceNQT
 
 // sender is address in constructor above
 await client.sendMoney(recipientJupAddress, amountJupToSend)

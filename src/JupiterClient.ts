@@ -71,6 +71,12 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       return fee
     },
 
+    calculateExpectedFees(data: Array<string>): number {
+      let expectedFees = 0;
+      data.forEach((data) => expectedFees += this.calculateMessageFee(data.length));
+      return expectedFees;
+    },
+
     decrypt: encryption.decrypt.bind(encryption),
     encrypt: encryption.encrypt.bind(encryption),
 
@@ -134,10 +140,10 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
       return peers
     },
 
-    async getBalance(address: string = opts.address): Promise<string> {
+    async getBalance(address: string = opts.address): Promise<object> {
       const {
         data: {
-          // unconfirmedBalanceNQT,
+           unconfirmedBalanceNQT,
           // forgedBalanceNQT,
           balanceNQT,
           // requestProcessingTime
@@ -148,7 +154,10 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
           account: address,
         },
       })
-      return this.nqtToJup(balanceNQT)
+      return {
+        'balanceNQT': balanceNQT,
+        'unconfirmedBalanceNQT': unconfirmedBalanceNQT
+      }
     },
 
     async createNewAddress(passphrase: string) {
@@ -174,7 +183,7 @@ export default function JupiterClient(opts: IJupiterClientOpts) {
           secretPhrase: opts.passphrase,
           recipient: recipientAddr,
           amountNQT: amountJup
-            ? this.jupToNqt(amountJup)
+            ? amountJup
             : CONF.minimumFndrAccountBalance,
           feeNQT: CONF.feeNQT,
           deadline: CONF.deadline,

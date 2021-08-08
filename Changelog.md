@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.1] - 2020-08-09
+### Changed
+- Changed getBalance response returning confirmed and unconfirmed balance
+- Added calculateExpectedFees function
+
 ## [0.4.0] - 2020-07-25
 ### Changed
 - Increased fee for jupiter-fs binary transactions
